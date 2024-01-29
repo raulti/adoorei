@@ -11,7 +11,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
     }
 
-    public function getAll(string $filter = null): array
+    public function getAll(): array
     {
         return $this->product::All()->toArray();
     }

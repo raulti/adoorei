@@ -12,12 +12,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('users')->insert([
-            'name' => Str::random(10),
-            'email' => 'seller@adoorei.com.br',
-            'password' => Hash::make('12345678'),
-        ]);
-
         $this->call([
             ProductSeeder::class
         ]);
