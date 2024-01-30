@@ -27,7 +27,7 @@ class SaleRepository implements SaleRepositoryInterface
         return $this->findById($createdSale->id);
     }
 
-    public function findById(int $id): Sale
+    public function findById(string $id): Sale
     {
         return $this->sale::with('products')
             ->find($id);

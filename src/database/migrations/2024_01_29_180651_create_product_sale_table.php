@@ -11,9 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_sale', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBiginteger('product_id')->index();
-            $table->unsignedBiginteger('sale_id')->index();
+            $table->uuid('id')->default(DB::raw('(UUID())'));
+            $table->uuid('product_id')->index();
+            $table->uuid('sale_id')->index();
 
             $table->foreign('product_id')->references('id')->on('products')->restrictOnDelete();
             $table->foreign('sale_id')->references('id')->on('sales')->restrictOnDelete();

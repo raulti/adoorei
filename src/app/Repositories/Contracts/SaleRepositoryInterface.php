@@ -8,4 +8,6 @@ use App\Models\Sale;
 interface SaleRepositoryInterface
 {
     public function create(CreateSaleDTO $createSaleDTO): Sale;
+
+    public function findById(string $id): Sale;
 }

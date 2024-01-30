@@ -16,6 +16,7 @@ class ProductSeeder extends Seeder
         DB::table('products')->insert(
             [
                 [
+                    'id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
                     'name' => 'Celular 1',
                     'description' => 'Lorenzo Ipsulum',
                     'price' => 1800,
@@ -23,6 +24,7 @@ class ProductSeeder extends Seeder
                     'updated_at' => \Carbon\Carbon::now()
                 ],
                 [
+                    'id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
                     'name' => 'Celular 2',
                     'description' => 'Lorem ipsum dolor',
                     'price' => 3200,
@@ -30,6 +32,7 @@ class ProductSeeder extends Seeder
                     'updated_at' => \Carbon\Carbon::now()
                 ],
                 [
+                    'id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
                     'name' => 'Celular 3',
                     'description' => 'Lorem ipsum dolor sit amet',
                     'price' => 9800,
