@@ -3,11 +3,15 @@
 namespace App\Repositories;
 
 use App\DTO\Sales\CreateSaleDTO;
+use App\DTO\Sales\FilterPaginatedSalesDTO;
 use App\DTO\Sales\FilterSaleDTO;
+use App\DTO\Sales\UpdateSaleDTO;
 use App\Models\Sale;
 use App\Repositories\Contracts\SaleRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SaleRepository implements SaleRepositoryInterface
 {
@@ -18,10 +22,10 @@ class SaleRepository implements SaleRepositoryInterface
 
     public function create(CreateSaleDTO $createSaleDTO): Sale
     {
-        $products = $this->productRepository->sumAmountByIds($createSaleDTO->productIds);
+        $amount = $this->productRepository->sumAmountByIds($createSaleDTO->productIds);
 
         $sale = new Sale();
-        $sale->setAmount($products);
+        $sale->setAmount($amount);
 
         $createdSale = $this->sale->create($sale->toArray());
 
@@ -30,22 +34,83 @@ class SaleRepository implements SaleRepositoryInterface
         return $this->findById($createdSale->id);
     }
 
+    public function update(string $id, UpdateSaleDTO $updateSaleDTO): Sale
+    {
+        $savedSale = $this->sale::find($id);
+        if (!$savedSale) {
+            throw new NotFoundHttpException('Que chato em, não vai dar pra atualizar a venda pq ela não existe!');
+        }
+
+        $amount = $this->productRepository->sumAmountByIds($updateSaleDTO->productIds);
+
+        $newSale = new Sale();
+        $newSale->setAmount($amount);
+
+        $savedSale->update($newSale->toArray());
+        $savedSale->products()->sync($updateSaleDTO->productIds);
+
+        return $this->findById($savedSale->id);
+    }
+
     public function findById(string $id): Sale
     {
         return $this->sale::with('products')
             ->find($id);
     }
 
-    public function index(FilterSaleDTO $filterSaleDTO): Paginator
+    public function index(FilterPaginatedSalesDTO $filterPaginatedSalesDTO, FilterSaleDTO $filterSaleDTO): Paginator
     {
         $query = $this->sale::with('products');
 
-        if ($filterSaleDTO->saleIds) {
-            $query->where('id', $filterSaleDTO->saleIds);
+        if ($filterPaginatedSalesDTO->saleIds) {
+            $query->where('id', $filterPaginatedSalesDTO->saleIds);
+        }
+
+        if ($filterPaginatedSalesDTO->orderBy) {
+            $query->orderBy('created_at', $filterPaginatedSalesDTO->orderBy);
         }
 
         $this->getQueryFilter($filterSaleDTO, $query);
-        return $query->simplePaginate($filterSaleDTO->perPage, ['*'], 'page', $filterSaleDTO->page);
+        return $query->simplePaginate($filterPaginatedSalesDTO->perPage, ['*'], 'page', $filterPaginatedSalesDTO->page);
+    }
+
+    public function findByFilter(string $id, FilterSaleDTO $filterSaleDTO): Sale
+    {
+        $saleCount = $this->countById($id);
+
+        if (!$saleCount) {
+            throw new NotFoundHttpException('Humm pequeno padawan, esse id não existe na nossa base de dados');
+        }
+
+        $query = $this->sale::with('products');
+        $this->getQueryFilter($filterSaleDTO, $query);
+
+        return $query->findOrNew($id);
+    }
+
+    public function softDelete(string $id): void
+    {
+        $sale = $this->sale::find($id);
+
+        if (!$sale) {
+            throw new NotFoundHttpException('Vou apagar a venda só quando vc me enviar um UUID válido :)');
+        }
+
+        $this->softDeleteProductsSaleBySaleId($id);
+
+        $sale->delete();
+    }
+
+    private function softDeleteProductsSaleBySaleId(string $saleId)
+    {
+        DB::table('product_sale')
+            ->where('sale_id', $saleId)
+            ->update(array('deleted_at' => DB::raw('NOW()')));
+    }
+
+    private function countById(string $id): int
+    {
+        return $this->sale::select('id')->where('id', $id)->count('id');
     }
 
     private function getQueryFilter(FilterSaleDTO $filterSaleDTO, Builder $query): void
@@ -70,10 +135,6 @@ class SaleRepository implements SaleRepositoryInterface
 
         if ($filterSaleDTO->isFinalized) {
             $query->whereNotNull('deleted_at');
-        }
-
-        if ($filterSaleDTO->orderBy) {
-            $query->orderBy('created_at', $filterSaleDTO->orderBy);
         }
     }
 }

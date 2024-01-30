@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,4 +22,7 @@ Route::group(['prefix' => 'product'], function () {
 Route::group(['prefix' => 'sale'], function () {
     Route::get('', [SaleController::class, 'index']);
     Route::post('', [SaleController::class, 'create']);
+    Route::put('/{id}', [SaleController::class, 'update']);
+    Route::get('/{id}', [SaleController::class, 'findByFilter']);
+    Route::delete('/{id}', [SaleController::class, 'delete']);
 });
