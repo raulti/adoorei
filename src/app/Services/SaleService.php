@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTO\Sales\CreateSaleDTO;
+use App\DTO\Sales\FilterSaleDTO;
 use App\Repositories\Contracts\SaleRepositoryInterface;
 
 class SaleService
@@ -13,5 +14,10 @@ class SaleService
     public function create(CreateSaleDTO $createSaleDTO)
     {
         return $this->saleRepository->create($createSaleDTO);
+    }
+
+    public function index(FilterSaleDTO $filterSaleDTO)
+    {
+        return $this->saleRepository->index($filterSaleDTO);
     }
 }

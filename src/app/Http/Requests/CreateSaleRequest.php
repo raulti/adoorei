@@ -13,7 +13,7 @@ class CreateSaleRequest extends FormRequest
     {
         return [
             'product_ids' => 'required|array',
-            'product_ids.*' => 'integer|distinct|exists:products,id'
+            'product_ids.*' => 'uuid|distinct|exists:products,id'
         ];
     }
 
