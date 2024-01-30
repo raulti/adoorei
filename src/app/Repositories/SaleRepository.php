@@ -8,19 +8,28 @@ use App\Repositories\Contracts\SaleRepositoryInterface;
 
 class SaleRepository implements SaleRepositoryInterface
 {
-    public function __construct(protected Sale $sale)
+
+    public function __construct(protected Sale $sale, protected ProductRepository $productRepository)
     {
     }
 
     public function create(CreateSaleDTO $createSaleDTO): Sale
     {
-        // fazer amount service ou algo assim no model
-        $createdSale = $this->sale->create(['amount' => 1020]);
+        $products = $this->productRepository->sumAmountByIds($createSaleDTO->productIds);
+
+        $sale = new Sale();
+        $sale->setAmount($products);
+
+        $createdSale = $this->sale->create($sale->toArray());
 
         $createdSale->products()->attach($createSaleDTO->productIds);
 
-        $sale = $this->sale::with('products')
-            ->find($createdSale->id);
-        return $sale;
+        return $this->findById($createdSale->id);
+    }
+
+    public function findById(int $id): Sale
+    {
+        return $this->sale::with('products')
+            ->find($id);
     }
 }

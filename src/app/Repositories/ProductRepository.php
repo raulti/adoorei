@@ -15,4 +15,9 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return $this->product::All()->toArray();
     }
+
+    public function sumAmountByIds(array $ids): float
+    {
+        return $this->product::select('price')->findMany($ids)->sum('price');
+    }
 }
